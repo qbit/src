@@ -2243,3 +2243,50 @@ translate_gva(struct vm_exit* exit, uint64_t va, uint64_t* pa, int mode)
 
 	return (0);
 }
+
+/*
+ * vm_pipe_init
+ *
+ * Initialize a vm_dev_pipe, setting up its file descriptors and its
+ * event structure with the given callback.
+ *
+ * Parameters:
+ *  p: pointer to vm_dev_pipe struct to initizlize
+ *  cb: callback to use for READ events on the read end of the pipe
+ */
+void
+vm_pipe_init(struct vm_dev_pipe *p, void (*cb)(int, short, void *))
+{
+	int ret;
+	int fds[2];
+
+	memset(p, 0, sizeof(struct vm_dev_pipe));
+
+	ret = pipe(fds);
+	if (ret) {
+		fatal("failed to create vm_dev_pipe pipe");
+	}
+	p->read = fds[0];
+	p->write = fds[1];
+
+	event_set(&p->read_ev, p->read, EV_READ | EV_PERSIST, cb, NULL);
+}
+
+/*
+ * vm_pipe_send
+ *
+ * Send a message to an emulated device vie the provided vm_dev_pipe.
+ * Messages should be of a value from enum pipe_msg_type.
+ *
+ * Parameters:
+ *  p: pointer to initialized vm_dev_pipe
+ *  msg: message (from pipe_msg_type enum) to send in the channel
+ */
+void
+vm_pipe_send(struct vm_dev_pipe *p, uint8_t msg)
+{
+	size_t n;
+	n = write(p->write, &msg, sizeof(msg));
+	if (n != sizeof(msg))
+		fatal("failed to write to device pipe");
+}

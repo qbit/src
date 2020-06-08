@@ -37,8 +37,40 @@
 extern char *__progname;
 struct ns8250_dev com1_dev;
 
+/* Flags to distinguish calling threads to com_rcv */
+#define NS8250_DEV_THREAD	0
+#define NS8250_CPU_THREAD 	1
+
+static struct vm_dev_pipe dev_pipe;
+
 static void com_rcv_event(int, short, void *);
-static void com_rcv(struct ns8250_dev *, uint32_t, uint32_t);
+static void com_rcv(struct ns8250_dev *, uint32_t, uint32_t, int8_t);
+
+/*
+ * ns8250_pipe_dispatch
+ *
+ * Reads a message off the pipe, expecting a reguest to reset events after a
+ * zero-byte read from the com device.
+ */
+static void
+ns8250_pipe_dispatch(int fd, short event, void *arg)
+{
+	size_t n;
+	uint8_t msg;
+
+	n = read(fd, &msg, sizeof(msg));
+	if (n != sizeof(msg))
+		fatal("failed to read from device pipe");
+
+	if (msg == NS8250_ZERO_READ) {
+		log_debug("%s: resetting events after zero byte read", __func__);
+		event_del(&com1_dev.event);
+		event_add(&com1_dev.wake, NULL);
+	} else {
+		fatal("unknown pipe message %u", msg);
+	}
+}
+
 
 /*
  * ratelimit
@@ -55,10 +87,15 @@ static void
 ratelimit(int fd, short type, void *arg)
 {
 	/* Set TXRDY and clear "no pending interrupt" */
+	mutex_lock(&com1_dev.mutex);
 	com1_dev.regs.iir |= IIR_TXRDY;
 	com1_dev.regs.iir &= ~IIR_NOPEND;
+	mutex_unlock(&com1_dev.mutex);
+
 	vcpu_assert_pic_irq(com1_dev.vmid, 0, com1_dev.irq);
 	vcpu_deassert_pic_irq(com1_dev.vmid, 0, com1_dev.irq);
+
+	evtimer_add(&com1_dev.rate, &com1_dev.rate_tv);
 }
 
 void
@@ -72,6 +109,7 @@ ns8250_init(int fd, uint32_t vmid)
 		errno = ret;
 		fatal("could not initialize com1 mutex");
 	}
+
 	com1_dev.fd = fd;
 	com1_dev.irq = 4;
 	com1_dev.portid = NS8250_COM1;
@@ -112,6 +150,10 @@ ns8250_init(int fd, uint32_t vmid)
 	timerclear(&com1_dev.rate_tv);
 	com1_dev.rate_tv.tv_usec = 10000;
 	evtimer_set(&com1_dev.rate, ratelimit, NULL);
+	evtimer_add(&com1_dev.rate, &com1_dev.rate_tv);
+
+	vm_pipe_init(&dev_pipe, ns8250_pipe_dispatch);
+	event_add(&dev_pipe.read_ev, NULL);
 }
 
 static void
@@ -137,7 +179,7 @@ com_rcv_event(int fd, short kind, void *arg)
 	if (com1_dev.regs.lsr & LSR_RXRDY)
 		com1_dev.rcv_pending = 1;
 	else {
-		com_rcv(&com1_dev, (uintptr_t)arg, 0);
+		com_rcv(&com1_dev, (uintptr_t)arg, 0, NS8250_DEV_THREAD);
 
 		/* If pending interrupt, inject */
 		if ((com1_dev.regs.iir & IIR_NOPEND) == 0) {
@@ -178,10 +220,10 @@ com_rcv_handle_break(struct ns8250_dev *com, uint8_t cmd)
  * com_rcv
  *
  * Move received byte into com data register.
- * Must be called with the mutex of the com device acquired
+ * Must be called with the mutex of the com device acquired.
  */
 static void
-com_rcv(struct ns8250_dev *com, uint32_t vm_id, uint32_t vcpu_id)
+com_rcv(struct ns8250_dev *com, uint32_t vm_id, uint32_t vcpu_id, int8_t thread)
 {
 	char buf[2];
 	ssize_t sz;
@@ -201,8 +243,13 @@ com_rcv(struct ns8250_dev *com, uint32_t vm_id, uint32_t vcpu_id)
 		if (errno != EAGAIN)
 			log_warn("unexpected read error on com device");
 	} else if (sz == 0) {
-		event_del(&com->event);
-		event_add(&com->wake, NULL);
+		if (thread == NS8250_DEV_THREAD) {
+			event_del(&com->event);
+			event_add(&com->wake, NULL);
+		} else {
+			/* Called by vcpu thread, use pipe for event changes */
+			vm_pipe_send(&dev_pipe, NS8250_ZERO_READ);
+		}
 		return;
 	} else if (sz != 1 && sz != 2)
 		log_warnx("unexpected read return value %zd on com device", sz);
@@ -255,13 +302,12 @@ vcpu_process_com_data(struct vm_exit *vei, uint32_t vm_id, uint32_t vcpu_id)
 		com1_dev.byte_out++;
 
 		if (com1_dev.regs.ier & IER_ETXRDY) {
-			/* Limit output rate if needed */
-			if (com1_dev.pause_ct > 0 &&
-			    com1_dev.byte_out % com1_dev.pause_ct == 0) {
-					evtimer_add(&com1_dev.rate,
-					    &com1_dev.rate_tv);
-			} else {
-				/* Set TXRDY and clear "no pending interrupt" */
+			/* Set TXRDY and clear "no pending interrupt"
+			 * only if we're not at the pause point. Otherwise
+			 * the rate limiter timer event will handle it.
+			 */
+			if (!(com1_dev.pause_ct > 0 &&
+			      com1_dev.byte_out % com1_dev.pause_ct == 0)) {
 				com1_dev.regs.iir |= IIR_TXRDY;
 				com1_dev.regs.iir &= ~IIR_NOPEND;
 			}
@@ -300,7 +346,7 @@ vcpu_process_com_data(struct vm_exit *vei, uint32_t vm_id, uint32_t vcpu_id)
 			com1_dev.regs.iir = 0x1;
 
 		if (com1_dev.rcv_pending)
-			com_rcv(&com1_dev, vm_id, vcpu_id);
+			com_rcv(&com1_dev, vm_id, vcpu_id, NS8250_CPU_THREAD);
 	}
 
 	/* If pending interrupt, make sure it gets injected */
@@ -672,6 +718,7 @@ ns8250_stop()
 {
 	if(event_del(&com1_dev.event))
 		log_warn("could not delete ns8250 event handler");
+	event_del(&com1_dev.wake);
 	evtimer_del(&com1_dev.rate);
 }
 
