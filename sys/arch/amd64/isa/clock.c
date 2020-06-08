@@ -116,7 +116,7 @@ u_int i8254_get_timecount(struct timecounter *tc);
 u_int i8254_simple_get_timecount(struct timecounter *tc);
 
 static struct timecounter i8254_timecounter = {
-	i8254_get_timecount, NULL, ~0u, TIMER_FREQ, "i8254", 0, NULL
+	i8254_get_timecount, NULL, ~0u, TIMER_FREQ, "i8254", 0, NULL, 0
 };
 
 int	clockintr(void *);

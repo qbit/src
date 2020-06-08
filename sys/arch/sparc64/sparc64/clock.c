@@ -109,13 +109,13 @@ struct cfdriver clock_cd = {
 u_int tick_get_timecount(struct timecounter *);
 
 struct timecounter tick_timecounter = {
-	tick_get_timecount, NULL, ~0u, 0, "tick", 0, NULL
+	tick_get_timecount, NULL, ~0u, 0, "tick", 0, NULL, 0
 };
 
 u_int sys_tick_get_timecount(struct timecounter *);
 
 struct timecounter sys_tick_timecounter = {
-	sys_tick_get_timecount, NULL, ~0u, 0, "sys_tick", 1000, NULL
+	sys_tick_get_timecount, NULL, ~0u, 0, "sys_tick", 1000, NULL, 0
 };
 
 /*

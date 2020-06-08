@@ -193,6 +193,9 @@ int sysconsole = 1;		/* 0 = ttya, 1 = keyboard/mouse, used in dev/sio.c */
 u_int16_t dipswitch = 0;	/* set in locore.S */
 int hwplanebits;		/* set in locore.S */
 
+/* timekeep number of user accesible clocks */
+int tk_nclocks = 0;
+
 extern struct consdev syscons;	/* in dev/siotty.c */
 
 extern void syscnattach(int);	/* in dev/siotty.c */

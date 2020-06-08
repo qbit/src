@@ -9,4 +9,4 @@ SRCS+=	fpgetmask.c fpgetround.c fpgetsticky.c
 SRCS+=	fpsetmask.c fpsetround.c fpsetsticky.c
 SRCS+=	fpclassifyl.c
 SRCS+=	isfinitel.c isinfl.c isnanl.c isnormall.c
-SRCS+=	signbitl.c
+SRCS+=	signbitl.c usertc.c

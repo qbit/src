@@ -55,7 +55,9 @@ struct timecounter gscpm_timecounter = {
 	0xffffff,		/* counter_mask */
 	3579545,		/* frequency */
 	"GSCPM",		/* name */
-	1000			/* quality */
+	1000,			/* quality */
+	NULL,			/* private bits */
+	0			/* expose to user */
 };
 
 struct cfattach gscpm_ca = {

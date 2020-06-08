@@ -45,7 +45,9 @@ static struct timecounter hpet_timecounter = {
 	0xffffffff,		/* counter_mask (32 bits) */
 	0,			/* frequency */
 	0,			/* name */
-	1000			/* quality */
+	1000,			/* quality */
+	NULL,			/* private bits */
+	0,			/* expose to user */
 };
 
 #define HPET_TIMERS	3

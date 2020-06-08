@@ -242,6 +242,7 @@ struct process {
 	char	ps_comm[MAXCOMLEN+1];
 
 	vaddr_t	ps_strings;		/* User pointers to argv/env */
+	vaddr_t ps_timekeep; 		/* User pointer to timekeep */
 	vaddr_t	ps_sigcode;		/* User pointer to the signal code */
 	vaddr_t ps_sigcoderet;		/* User pointer to sigreturn retPC */
 	u_long	ps_sigcookie;

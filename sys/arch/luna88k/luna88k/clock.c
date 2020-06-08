@@ -112,7 +112,9 @@ struct timecounter clock_tc = {
 	.tc_counter_mask = 0xffffffff,
 	.tc_frequency = 0, /* will be filled in */
 	.tc_name = "clock",
-	.tc_quality = 0
+	.tc_quality = 0,
+	.tc_priv = NULL,
+	.tc_user = 0,
 };
 
 /*

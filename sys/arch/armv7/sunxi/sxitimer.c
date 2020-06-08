@@ -89,7 +89,7 @@ void	sxitimer_delay(u_int);
 u_int sxitimer_get_timecount(struct timecounter *);
 
 static struct timecounter sxitimer_timecounter = {
-	sxitimer_get_timecount, NULL, 0xffffffff, 0, "sxitimer", 0, NULL
+	sxitimer_get_timecount, NULL, 0xffffffff, 0, "sxitimer", 0, NULL, 0
 };
 
 bus_space_tag_t		sxitimer_iot;

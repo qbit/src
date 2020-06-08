@@ -111,7 +111,9 @@ struct timecounter ip27_hub_timecounter = {
 	.tc_counter_mask = 0xffffffff,	/* truncated to 32 bits. */
 	.tc_frequency = 1250000,
 	.tc_name = "hubrt",
-	.tc_quality = 100
+	.tc_quality = 100,
+	.tc_priv = 0,
+	.tc_user = 0,
 };
 
 volatile uint64_t	ip27_spinup_a0;

@@ -124,7 +124,7 @@ extern char *syscallnames[];
 /*
  * How many entries are in the AuxInfo array we pass to the process?
  */
-#define ELF_AUX_ENTRIES	8
+#define ELF_AUX_ENTRIES	9
 
 /*
  * This is the OpenBSD ELF emul
@@ -858,6 +858,10 @@ exec_elf_fixup(struct proc *p, struct exec_package *epp)
 
 		a->au_id = AUX_entry;
 		a->au_v = ap->arg_entry;
+		a++;
+
+		a->au_id = AUX_openbsd_timekeep;
+		a->au_v = p->p_p->ps_timekeep;
 		a++;
 
 		a->au_id = AUX_null;

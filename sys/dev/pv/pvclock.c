@@ -74,7 +74,7 @@ struct cfdriver pvclock_cd = {
 };
 
 struct timecounter pvclock_timecounter = {
-	pvclock_get_timecount, NULL, ~0u, 0, NULL, -2000, NULL
+	pvclock_get_timecount, NULL, ~0u, 0, NULL, -2000, NULL, 0
 };
 
 int

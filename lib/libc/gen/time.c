@@ -36,7 +36,7 @@ time(time_t *t)
 {
 	struct timeval tt;
 
-	if (gettimeofday(&tt, NULL) == -1)
+	if (WRAP(gettimeofday)(&tt, NULL) == -1)
 		return (-1);
 	if (t)
 		*t = (time_t)tt.tv_sec;

@@ -29,7 +29,7 @@ PROTO_NORMAL(asctime_r);
 PROTO_STD_DEPRECATED(clock);
 PROTO_DEPRECATED(clock_getcpuclockid);
 PROTO_NORMAL(clock_getres);
-PROTO_NORMAL(clock_gettime);
+PROTO_WRAP(clock_gettime);
 PROTO_NORMAL(clock_settime);
 PROTO_STD_DEPRECATED(ctime);
 PROTO_DEPRECATED(ctime_r);

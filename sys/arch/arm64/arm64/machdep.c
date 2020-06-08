@@ -90,6 +90,9 @@ struct uvm_constraint_range *uvm_md_constraints[] = {
 /* the following is used externally (sysctl_hw) */
 char    machine[] = MACHINE;            /* from <machine/param.h> */
 
+/* timekeep number of user accesible clocks */
+int tk_nclocks = 0;
+
 int safepri = 0;
 
 struct cpu_info cpu_info_primary;

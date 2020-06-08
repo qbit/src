@@ -37,7 +37,7 @@ timespec_get(struct timespec *ts, int base)
 {
 	switch (base) {
 	case TIME_UTC:
-		if (clock_gettime(CLOCK_REALTIME, ts) == -1)
+		if (WRAP(clock_gettime)(CLOCK_REALTIME, ts) == -1)
 			return 0;
 		break;
 	default:

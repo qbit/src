@@ -24,7 +24,7 @@ PROTO_NORMAL(adjfreq);
 PROTO_NORMAL(adjtime);
 PROTO_NORMAL(futimes);
 PROTO_NORMAL(getitimer);
-PROTO_NORMAL(gettimeofday);
+PROTO_WRAP(gettimeofday);
 PROTO_NORMAL(setitimer);
 PROTO_NORMAL(settimeofday);
 PROTO_NORMAL(utimes);

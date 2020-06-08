@@ -52,7 +52,7 @@ times(struct tms *tp)
 		return ((clock_t)-1);
 	tp->tms_cutime = CONVTCK(ru.ru_utime);
 	tp->tms_cstime = CONVTCK(ru.ru_stime);
-	if (clock_gettime(CLOCK_MONOTONIC, &ts) == -1)
+	if (WRAP(clock_gettime)(CLOCK_MONOTONIC, &ts) == -1)
 		return ((clock_t)-1);
 	return (ts.tv_sec * CLK_TCK + ts.tv_nsec / (1000000000 / CLK_TCK));
 }

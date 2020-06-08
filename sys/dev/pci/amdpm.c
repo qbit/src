@@ -82,7 +82,9 @@ static struct timecounter amdpm_timecounter = {
 	0xffffff,		/* counter_mask */
 	AMDPM_FREQUENCY,	/* frequency */
 	"AMDPM",		/* name */
-	1000			/* quality */
+	1000,			/* quality */
+	NULL,			/* private bits */
+	0,			/* expose to user */
 };
 
 #define	AMDPM_CONFREG	0x40

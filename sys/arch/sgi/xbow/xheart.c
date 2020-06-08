@@ -83,7 +83,9 @@ struct timecounter xheart_timecounter = {
 	.tc_counter_mask = 0xffffffff,	/* truncate 52-bit counter to 32-bit */
 	.tc_frequency = 12500000,
 	.tc_name = "heart",
-	.tc_quality = 100
+	.tc_quality = 100,
+	.tc_priv = NULL,
+	.tc_user = 0,
 };
 
 extern uint32_t ip30_lights_frob(uint32_t, struct trapframe *);

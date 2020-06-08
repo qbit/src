@@ -248,9 +248,9 @@ _bcrypt_autorounds(void)
 	char buf[_PASSWORD_LEN];
 	int duration;
 
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &before);
+	WRAP(clock_gettime)(CLOCK_THREAD_CPUTIME_ID, &before);
 	bcrypt_newhash("testpassword", r, buf, sizeof(buf));
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &after);
+	WRAP(clock_gettime)(CLOCK_THREAD_CPUTIME_ID, &after);
 
 	duration = after.tv_sec - before.tv_sec;
 	duration *= 1000000;

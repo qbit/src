@@ -327,7 +327,9 @@ struct timecounter cp0_timecounter = {
 	0xffffffff,		/* counter_mask */
 	0,			/* frequency */
 	"CP0",			/* name */
-	0			/* quality */
+	0,			/* quality */
+	NULL,			/* private bits */
+	0,			/* expose to user */
 };
 
 u_int

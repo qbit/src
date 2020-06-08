@@ -107,6 +107,9 @@ struct boot_info *octeon_boot_info;
 void		*octeon_fdt;
 unsigned int	 octeon_ver;
 
+/* timekeep number of user accesible clocks */
+int tk_nclocks = 0;
+
 /*
  * safepri is a safe priority for sleep to set for a spin-wait
  * during autoconfiguration or after a panic.
@@ -151,8 +154,9 @@ struct timecounter ioclock_timecounter = {
 	.tc_name = "ioclock",
 	.tc_quality = 0,		/* ioclock can be overridden
 					 * by cp0 counter */
-	.tc_priv = 0			/* clock register,
+	.tc_priv = 0,			/* clock register,
 					 * determined at runtime */
+	.tc_user = 0,			/* expose to user */
 };
 
 static int

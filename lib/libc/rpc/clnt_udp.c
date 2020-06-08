@@ -265,7 +265,7 @@ send_again:
 	reply_msg.acpted_rply.ar_results.where = resultsp;
 	reply_msg.acpted_rply.ar_results.proc = xresults;
 
-	clock_gettime(CLOCK_MONOTONIC, &start);
+	WRAP(clock_gettime)(CLOCK_MONOTONIC, &start);
 	for (;;) {
 		switch (ppoll(pfd, 1, &wait, NULL)) {
 		case 0:
@@ -283,7 +283,7 @@ send_again:
 			/* FALLTHROUGH */
 		case -1:
 			if (errno == EINTR) {
-				clock_gettime(CLOCK_MONOTONIC, &after);
+				WRAP(clock_gettime)(CLOCK_MONOTONIC, &after);
 				timespecsub(&after, &start, &duration);
 				timespecadd(&time_waited, &duration, &time_waited);
 				if (timespeccmp(&time_waited, &timeout, <))

@@ -57,7 +57,7 @@ u_int32_t ns_per_tick = 320;
 static int32_t ticks_per_intr;
 
 static struct timecounter tb_timecounter = {
-	tb_get_timecount, NULL, 0x7fffffff, 0, "tb", 0, NULL
+	tb_get_timecount, NULL, 0x7fffffff, 0, "tb", 0, NULL, 0
 };
 
 /* calibrate the timecounter frequency for the listed models */

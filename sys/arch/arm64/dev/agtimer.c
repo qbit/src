@@ -43,7 +43,7 @@ int32_t agtimer_frequency = TIMER_FREQUENCY;
 u_int agtimer_get_timecount(struct timecounter *);
 
 static struct timecounter agtimer_timecounter = {
-	agtimer_get_timecount, NULL, 0x7fffffff, 0, "agtimer", 0, NULL
+	agtimer_get_timecount, NULL, 0x7fffffff, 0, "agtimer", 0, NULL, 0
 };
 
 struct agtimer_pcpu_softc {

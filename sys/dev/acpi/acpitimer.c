@@ -36,7 +36,9 @@ static struct timecounter acpi_timecounter = {
 	0x00ffffff,		/* counter_mask (24 bits) */
 	ACPI_FREQUENCY,		/* frequency */
 	0,			/* name */
-	1000			/* quality */
+	1000,			/* quality */
+	NULL,			/* private bits */
+	0,			/* expose to user */
 };
 
 struct acpitimer_softc {

@@ -20,6 +20,7 @@
 
 #include <sys/types.h>
 #include <sys/syscall.h>
+#include <sys/timetc.h>		/* timekeep */
 
 #ifndef PIC
 #include <sys/mman.h>
@@ -45,8 +46,9 @@
 /* XXX should be in an include file shared with csu */
 char	***_csu_finish(char **_argv, char **_envp, void (*_cleanup)(void));
 
-/* provide definition for this */
+/* provide definitions for these */
 int	_pagesize = 0;
+void	*_timekeep = NULL;
 
 /*
  * In dynamicly linked binaries environ and __progname are overriden by
@@ -105,6 +107,10 @@ _libc_preinit(int argc, char **argv, char **envp, dl_cb_cb *cb)
 			phnum = aux->au_v;
 			break;
 #endif /* !PIC */
+		case AUX_openbsd_timekeep:
+			if (_tc_get_timecount)
+				_timekeep = (void *)aux->au_v;
+			break;
 		}
 	}
 

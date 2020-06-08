@@ -65,7 +65,9 @@ struct timecounter geodesc_timecounter = {
 	0xffffffff,		/* counter_mask */
 	27000000,		/* frequency */
 	"GEOTSC",		/* name */
-	2000			/* quality */
+	2000,			/* quality */
+	NULL,			/* private bits */
+	0			/* expose to user */
 };
 
 int

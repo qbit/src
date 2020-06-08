@@ -64,6 +64,11 @@
 #include <uvm/uvm_extern.h>
 #include <machine/tcb.h>
 
+#include <sys/timetc.h>
+
+struct uvm_object *timekeep_object;
+struct timekeep* timekeep;
+
 void	unveil_destroy(struct process *ps);
 
 const struct kmem_va_mode kv_exec = {
@@ -75,6 +80,11 @@ const struct kmem_va_mode kv_exec = {
  * Map the shared signal code.
  */
 int exec_sigcode_map(struct process *, struct emul *);
+
+/*
+ * Map the shared timekeep page.
+ */
+int exec_timekeep_map(struct process *);
 
 /*
  * If non-zero, stackgap_random specifies the upper limit of the random gap size
@@ -684,6 +694,9 @@ sys_execve(struct proc *p, void *v, register_t *retval)
 	/* map the process's signal trampoline code */
 	if (exec_sigcode_map(pr, pack.ep_emul))
 		goto free_pack_abort;
+	/* map the process's timekeep page */
+	if (exec_timekeep_map(pr))
+		goto free_pack_abort;
 
 #ifdef __HAVE_EXEC_MD_MAP
 	/* perform md specific mappings that process might need */
@@ -860,6 +873,45 @@ exec_sigcode_map(struct process *pr, struct emul *e)
 	/* Calculate PC at point of sigreturn entry */
 	pr->ps_sigcoderet = pr->ps_sigcode +
 	    (pr->ps_emul->e_esigret - pr->ps_emul->e_sigcode);
+
+	return (0);
+}
+
+int
+exec_timekeep_map(struct process *pr)
+{
+	size_t timekeep_sz = sizeof(struct timekeep);
+
+	/*
+	 * Similar to the sigcode object, except that there is a single timekeep
+	 * object, and not one per emulation.
+	 */
+	if (timekeep_object == NULL) {
+		vaddr_t va;
+
+		timekeep_object = uao_create(timekeep_sz, 0);
+		uao_reference(timekeep_object);
+
+		if (uvm_map(kernel_map, &va, round_page(timekeep_sz), timekeep_object,
+		    0, 0, UVM_MAPFLAG(PROT_READ | PROT_WRITE, PROT_READ | PROT_WRITE,
+		    MAP_INHERIT_SHARE, MADV_RANDOM, 0))) {
+			uao_detach(timekeep_object);
+			return (ENOMEM);
+		}
+
+		timekeep = (struct timekeep *)va;
+		timekeep->tk_major = 0;
+		timekeep->tk_minor = 0;
+		timekeep->tk_nclocks = tk_nclocks;
+	}
+
+	uao_reference(timekeep_object);
+	if (uvm_map(&pr->ps_vmspace->vm_map, &pr->ps_timekeep, round_page(timekeep_sz),
+	    timekeep_object, 0, 0, UVM_MAPFLAG(PROT_READ, PROT_READ,
+	    MAP_INHERIT_COPY, MADV_RANDOM, 0))) {
+		uao_detach(timekeep_object);
+		return (ENOMEM);
+	}
 
 	return (0);
 }

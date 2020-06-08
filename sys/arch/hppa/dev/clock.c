@@ -47,7 +47,7 @@ int	cpu_hardclock(void *);
 u_int	itmr_get_timecount(struct timecounter *);
 
 struct timecounter itmr_timecounter = {
-	itmr_get_timecount, NULL, 0xffffffff, 0, "itmr", 0, NULL
+	itmr_get_timecount, NULL, 0xffffffff, 0, "itmr", 0, NULL, 0
 };
 
 extern todr_chip_handle_t todr_handle;

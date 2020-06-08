@@ -127,7 +127,7 @@ extern struct sparc_pci_chipset _sparc_pci_chipset;
 u_int stick_get_timecount(struct timecounter *);
 
 struct timecounter stick_timecounter = {
-	stick_get_timecount, NULL, ~0u, 0, "stick", 1000, NULL
+	stick_get_timecount, NULL, ~0u, 0, "stick", 1000, NULL, 0
 };
 
 /*

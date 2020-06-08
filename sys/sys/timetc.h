@@ -24,7 +24,7 @@
 #ifndef _SYS_TIMETC_H_
 #define	_SYS_TIMETC_H_
 
-#ifndef _KERNEL
+#if !defined(_KERNEL) && !defined(_LIBC)
 #error "no user-serviceable parts inside"
 #endif
 
@@ -80,6 +80,8 @@ struct timecounter {
 		 */
 	void			*tc_priv;		/* [I] */
 		/* Pointer to the timecounter's private parts. */
+	int			tc_user;		/* [I] */
+		/* Expose this timecounter to userland. */
 	SLIST_ENTRY(timecounter) tc_next;		/* [I] */
 		/* Pointer to the next timecounter. */
 	int64_t			tc_freq_adj;		/* [tw] */
@@ -88,10 +90,33 @@ struct timecounter {
 		/* Precision of the counter.  Computed in tc_init(). */
 };
 
+struct timekeep {
+	/* set at initialization */
+	uint32_t	tk_major;		/* version major number */
+	uint32_t	tk_minor;		/* version minor number */
+	int		tk_nclocks;		/* number of arch user clocks */
+
+	/* timehands members */
+	uint64_t	tk_scale;
+	u_int		tk_offset_count;
+	struct bintime	tk_offset;
+	struct bintime	tk_naptime;
+	struct bintime	tk_boottime;
+	volatile u_int	tk_generation;
+
+	/* timecounter members */
+	int		tk_user;
+	u_int		tk_counter_mask;
+};
+extern int tk_nclocks;
+
 struct rwlock;
 extern struct rwlock tc_lock;
 
 extern struct timecounter *timecounter;
+
+extern struct uvm_object *timekeep_object;
+extern struct timekeep *timekeep;
 
 u_int64_t tc_getfrequency(void);
 u_int64_t tc_getprecision(void);

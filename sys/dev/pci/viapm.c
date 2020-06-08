@@ -177,7 +177,9 @@ static struct timecounter viapm_timecounter = {
 	0xffffff,		/* counter_mask */
 	VIAPM_FREQUENCY,	/* frequency */
 	"VIAPM",		/* name */
-	1000			/* quality */
+	1000,			/* quality */
+	NULL,			/* private bits */
+	0,			/* expose to user */
 };
 
 struct timeout viapm_timeout;

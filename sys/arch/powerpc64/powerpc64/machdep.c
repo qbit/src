@@ -45,6 +45,9 @@ int cacheline_size = 128;
 struct uvm_constraint_range  dma_constraint = { 0x0, (paddr_t)-1 };
 struct uvm_constraint_range *uvm_md_constraints[] = { NULL };
 
+/* timekeep number of user accesible clocks */
+int tk_nclocks = 0;
+
 int cold = 1;
 int safepri = 0;
 int physmem;
