@@ -63,6 +63,30 @@ struct mc146818 {
 
 struct mc146818 rtc;
 
+static struct vm_dev_pipe dev_pipe;
+
+static void rtc_reschedule_per(void);
+
+/*
+ * mc146818_pipe_dispatch
+ *
+ * Reads a message off the pipe, expecting a request to reschedule periodic
+ * interrupt rate.
+ */
+static void
+mc146818_pipe_dispatch(int fd, short event, void *arg)
+{
+	uint8_t msg;
+
+	msg = vm_pipe_recv(&dev_pipe);
+	if (msg == MC146818_RESCHEDULE_PER) {
+		log_debug("%s: rescheduling periodic timer", __func__);
+		rtc_reschedule_per();
+	} else {
+		fatal("unexpected pipe message %u", msg);
+	}
+}
+
 /*
  * rtc_updateregs
  *
@@ -175,6 +199,9 @@ mc146818_init(uint32_t vm_id, uint64_t memlo, uint64_t memhi)
 	evtimer_add(&rtc.sec, &rtc.sec_tv);
 
 	evtimer_set(&rtc.per, rtc_fireper, (void *)(intptr_t)rtc.vm_id);
+
+	vm_pipe_init(&dev_pipe, mc146818_pipe_dispatch);
+	event_add(&dev_pipe.read_ev, NULL);
 }
 
 /*
@@ -217,7 +244,7 @@ rtc_update_rega(uint32_t data)
 
 	rtc.regs[MC_REGA] = data;
 	if ((rtc.regs[MC_REGA] ^ data) & 0x0f)
-		rtc_reschedule_per();
+		vm_pipe_send(&dev_pipe, MC146818_RESCHEDULE_PER);
 }
 
 /*
@@ -240,7 +267,7 @@ rtc_update_regb(uint32_t data)
 	rtc.regs[MC_REGB] = data;
 
 	if (data & MC_REGB_PIE)
-		rtc_reschedule_per();
+		vm_pipe_send(&dev_pipe, MC146818_RESCHEDULE_PER);
 }
 
 /*
