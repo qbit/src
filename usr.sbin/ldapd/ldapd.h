@@ -53,6 +53,7 @@
 #define F_SSL			(F_LDAPS|F_STARTTLS)
 
 #define F_SECURE		 0x04
+#define F_LEGACY		 0x08
 
 #define F_SCERT			 0x01
 

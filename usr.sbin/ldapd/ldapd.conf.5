@@ -79,6 +79,7 @@ is described below.
 .It Xo
 .Ic listen on Ar interface
 .Op Ic port Ar port
+.Op Ic legacy
 .Op Ic tls | ldaps | secure
 .Op Ic certificate Ar name
 .Xc
@@ -97,6 +98,15 @@ by default on port 389,
 or LDAPS
 .Pq Ic ldaps ,
 by default on port 636.
+.Ic tls
+and
+.Ic ldaps
+connections will use the defaults from libtls.
+If compatibility with the insecure TLSv1.0 and TLSv1.1
+protocols and ciphers is required,
+they can be enabled with the
+.Ic legacy
+keyword.
 Creation of certificates is documented in
 .Xr starttls 8 .
 If no certificate
