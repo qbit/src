@@ -252,14 +252,26 @@ struct iwm_fw_paging {
 #define IWM_TX_RING_LOMARK	192
 #define IWM_TX_RING_HIMARK	224
 
+/* For aggregation queues, index must be aligned to frame sequence number. */
+#define IWM_AGG_SSN_TO_TXQ_IDX(x)	((x) & (IWM_TX_RING_COUNT - 1))
+
 struct iwm_tx_data {
 	bus_dmamap_t	map;
 	bus_addr_t	cmd_paddr;
 	bus_addr_t	scratch_paddr;
 	struct mbuf	*m;
 	struct iwm_node *in;
+	int totlen;
+	int retries;
+	int txfail;
 	int txmcs;
 	int txrate;
+
+	/* A-MPDU subframes */
+	int ampdu_id;
+	int ampdu_txmcs;
+	int ampdu_nframes;
+	int ampdu_size;
 };
 
 struct iwm_tx_ring {
@@ -363,6 +375,12 @@ struct iwm_bf_data {
 	int last_cqm_event;
 };
 
+struct iwm_ba_param {
+	uint16_t		tid_mask;
+	uint16_t		ssn[IWM_MAX_TID_COUNT];
+	uint16_t		winsize[IWM_MAX_TID_COUNT];
+};
+
 struct iwm_softc {
 	struct device sc_dev;
 	struct ieee80211com sc_ic;
@@ -381,10 +399,15 @@ struct iwm_softc {
 
 	/* Task for firmware BlockAck setup/teardown and its arguments. */
 	struct task		ba_task;
-	int			ba_start;
-	int			ba_tid;
-	uint16_t		ba_ssn;
-	uint16_t		ba_winsize;
+	int			ba_flags;
+#define IWM_RX_BA_START	0x01
+#define IWM_TX_BA_START	0x02
+#define IWM_RX_BA_STOP	0x04
+#define IWM_TX_BA_STOP	0x08
+	struct iwm_ba_param	rx_ba_start;
+	struct iwm_ba_param	rx_ba_stop;
+	struct iwm_ba_param	tx_ba_start;
+	struct iwm_ba_param	tx_ba_stop;
 
 	/* Task for HT protection updates. */
 	struct task		htprot_task;
@@ -407,6 +430,7 @@ struct iwm_softc {
 	struct iwm_rx_ring rxq;
 	int qfullmsk;
 	int cmdqid;
+	int qenablemsk;
 
 	int sc_sf_state;
 
@@ -551,6 +575,12 @@ struct iwm_node {
 	int chosen_txrate;
 	struct ieee80211_mira_node in_mn;
 	int chosen_txmcs;
+
+	uint32_t next_ampdu_id;
+
+	/* Currently active Rx/Tx block ack sessions; tracked per TID. */
+	uint8_t ampdu_rx_tid_mask;
+	uint8_t ampdu_tx_tid_mask;
 };
 #define IWM_STATION_ID 0
 #define IWM_AUX_STA_ID 1
