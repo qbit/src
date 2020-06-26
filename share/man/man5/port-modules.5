@@ -1107,6 +1107,34 @@ are appended to port's
 .Ev BUILD_DEPENDS .
 Defaults to
 .Ar Yes .
+.It Ev MODGO_MODNAME
+Is the module name as defined in the "go.mod" file contained in a project.
+If this is set,
+.Ev MODGO_MODULES ,
+.Ev MODGO_MODFILES
+and
+.Ev MODGO_VERSION
+need to be defined as well.
+Setting this will also set
+.Ev ALL_TARGET .
+When
+.Ev MODGO_MODFILES
+is set, and a "cmd" directory is found in
+.Ev WRKSRC ,
+"cmd/..." is appended to
+.Ev ALL_TARGET
+in
+.Cm do-build
+automatically.
+.It Ev MODGO_VERSION
+Sets the specific version of a Go module to use.
+For example: v0.1.3.
+.It Ev MODGO_MODULES
+List of modules and their specific versions that an application depends on.
+.It Ev MODGO_MODFILES
+List of go.mod files and their versions that are required for dependency
+resolution.
+These are required by Go to determine the full dependency graph.
 .El
 .Pp
 Additionally defines
