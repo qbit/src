@@ -207,6 +207,8 @@ carp_strict_addr_chk(struct ifnet *ifp_a, struct ifnet *ifp_b)
 	    ifp_a->if_carpdev == ifp_b->if_carpdev));
 }
 
+struct mbuf	*carp_input(struct ifnet *, struct mbuf *);
+
 int		 carp_proto_input(struct mbuf **, int *, int, int);
 void		 carp_carpdev_state(void *);
 void		 carp_group_demote_adj(struct ifnet *, int, char *);

@@ -47,6 +47,7 @@ struct	vlanreq {
 };
 
 #ifdef _KERNEL
+struct mbuf	*vlan_input(struct ifnet *, struct mbuf *);
 struct mbuf	*vlan_inject(struct mbuf *, uint16_t, uint16_t);
 #endif /* _KERNEL */
 
